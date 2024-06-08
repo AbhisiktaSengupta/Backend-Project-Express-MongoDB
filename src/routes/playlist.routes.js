@@ -17,8 +17,8 @@ router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 router.route("/").post(createPlaylist)
 
 router
-    .route("/:playlistId")
-    .get(getPlaylistById)
+    .route("/:playlistId")  
+    .get(getPlaylistById)//playlist id ta kotha theke paabo??mane ki n=end point hit krte hobee??
     .patch(updatePlaylist)
     .delete(deletePlaylist);
 
