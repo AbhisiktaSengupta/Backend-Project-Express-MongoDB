@@ -3,7 +3,8 @@ import {Playlist} from "../models/playlist.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
-
+import {User} from "../models/user.model.js"
+import {Video} from "../models/video.model.js"
 
 const createPlaylist = asyncHandler(async (req, res) => {
     const {name, description} = req.body
@@ -42,7 +43,38 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         {
             throw new ApiError(404,"User not found")
         }
-        //parchina
+    
+        //oi playlist gulo i suhdu filter hbe jegulo created by user
+        //join korbo playlist and videos
+        //jehitu Playlist.aggregate likhechi sei jonno local field e "videos" and foreign field e "_id"
+        //ei Playlist er akta object er modhay notun akta barbe with name "playlist"-- jetar modhay shb videos thakbe from all the playlist created by the user
+
+        //DOUBT:--
+        //finally plalist field er modhay ki thakchee
+        //check Shruti(You)
+        
+        const playLists = await Playlist.aggregate([
+            {
+                $match : {
+                    owner : new mongoose.Types.ObjectId(userId) 
+                   }
+            },
+            {
+                $lookup : {
+                    from : "videos",
+                    localField : "videos",
+                    foreignField : "_id",
+                    as : "videos",
+                }
+            },
+            {
+                $addFields : {
+                    playlist: {
+                        $first : "$videos"
+                    }
+                }
+            }
+        ])
 
     //TODO: get user playlists
 })

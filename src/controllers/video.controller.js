@@ -19,6 +19,18 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    if(!videoId)
+        {
+            throw new ApiError(400,"Invalid video id")
+        }
+    const video=await Video.getVideoById(videoId)
+    if(!video)
+        {
+            throw new ApiError(404,"Video not found")
+        }    
+    return res
+    .status(200)
+    .json(new ApiResponse(200,video,"Video Fetched successfully"))    
     //TODO: get video by id
 })
 
@@ -30,6 +42,27 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    if(!videoId)
+        {
+            throw new ApiError(400,"Invalid video id")
+        }
+    const video=await Video.getVideoById(videoId)
+    if(!video)
+        {
+            throw new ApiError(404,"Video not found")
+        }   
+    if(video.owner.toString()!==req.user?._id.toString())
+        {
+            throw new ApiError(403,"You don't have permission to delete this video!")
+        }    
+        //delete the vid from cloudinary left
+    const deleteVideo=await Video.findByIdAndDelete(videoId)
+    if(!deleteVideo)
+        {
+            throw new ApiError(400,"Something went wrong while deleting video")
+        }    
+        return res.status(200)
+        .json(new ApiResponse(200,deleteVideo,"Video deleted succesfully"))
     //TODO: delete video
 })
 

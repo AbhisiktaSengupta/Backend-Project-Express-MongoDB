@@ -8,6 +8,18 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 const toggleSubscription = asyncHandler(async (req, res) => {
     const {channelId} = req.params
+    if(!isValidObjectId(channelId)){
+        throw new ApiError(400, "Invalid ChannelId")
+    }
+
+    const channel = await User.findById({
+        _id : channelId,
+    })
+
+    if(!channel){
+        throw new ApiError(400, "This channel does not exist")
+    }
+    
     // TODO: toggle subscription
 })
 
