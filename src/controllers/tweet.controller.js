@@ -67,7 +67,7 @@ const updateTweet = asyncHandler(async (req, res) => {
     {
         throw new ApiError(403, "You don't have permission to update this tweet!");
     }
-    const updatedTweet=await Tweet.findByIdAndUpdate(tweet?._id,  //ekahne tweetId o hote pare?
+    const updatedTweet=await Tweet.findByIdAndUpdate(tweet?._id, 
         {
             $set:
             {

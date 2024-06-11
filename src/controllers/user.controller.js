@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {deleteFromCloudinary, uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -240,6 +240,17 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     }
 
     //TODO: delete old image - assignment
+    const prevAvatar=req.user?.avatar
+    if(prevAvatar)
+        {
+         const delAvatar=   await deleteFromCloudinary(prevAvatar)
+         if(!delAvatar){
+             throw new ApiError(400, "Error while deleting old avatar")
+         }
+        }
+    else{
+        throw new ApiError(400, "No avatar found")
+    }    
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
@@ -273,6 +284,17 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     }
 
     //TODO: delete old image - assignment 
+    const prevCoverImage=req.user?.coverImage
+    if(prevCoverImage)
+        {
+         const delCoverImage=   await deleteFromCloudinary(prevCoverImage)
+         if(!delCoverImage){
+             throw new ApiError(400, "Error while deleting old cover image")
+         }
+        }
+    else{
+        throw new ApiError(400, "No cover image found")
+    }
 
 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)

@@ -43,29 +43,19 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         {
             throw new ApiError(404,"User not found")
         }
-    
-        //oi playlist gulo i suhdu filter hbe jegulo created by user
-        //join korbo playlist and videos
-        //jehitu Playlist.aggregate likhechi sei jonno local field e "videos" and foreign field e "_id"
-        //ei Playlist er akta object er modhay notun akta barbe with name "playlist"-- jetar modhay shb videos thakbe from all the playlist created by the user
-
-        //DOUBT:--
-        //finally plalist field er modhay ki thakchee
-        //check Shruti(You)
-        
         const playLists = await Playlist.aggregate([
             {
                 $match : {
                     owner : new mongoose.Types.ObjectId(userId) 
-                   }
+                }
             },
             {
-                $lookup : {
-                    from : "videos",
-                    localField : "videos",
-                    foreignField : "_id",
-                    as : "videos",
-                }
+               $lookup:{
+                from:"videos",
+                localField:"videos",
+                foreignField:"_id",
+                as:"videos"
+               }
             },
             {
                 $addFields : {
@@ -115,7 +105,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         {
             throw new ApiError(404,"Playlist not found")
         }
-    if(playlist.owner.toString()!==req.user._id)
+    if(playlist.owner.toString()!==req.user._id.toString())
         {
             throw new ApiError(403,"You don't have permission to update this playlist!")
         }    
@@ -129,7 +119,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         const addtoplaylist=await Playlist.findByIdAndUpdate(playlistId,
             {
                 $push:{
-                    video: videoId
+                    videos: videoId
                 }
             },
             {
@@ -158,7 +148,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         {
             throw new ApiError(404,"Playlist not found")
         }
-    if(playlist.owner.toString()!==req.user._id)
+    if(playlist.owner.toString()!==req.user._id.toString())
         {
             throw new ApiError(403,"You don't have permission to remove video from this playlist!")
         }    
@@ -172,7 +162,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
         const removefromplaylist=await Playlist.findByIdAndUpdate(playlistId,
             {
                 $pull:{
-                    video: videoId
+                    videos: videoId
                 }
             },
             {
@@ -200,7 +190,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
         {
             throw new ApiError(404,"Playlist not found")
         }
-    if(playlist.owner.toString()!==req.user._id)
+    if(playlist.owner.toString()!==req.user._id.toString())
         {
             throw new ApiError(403,"You don't have permission to delete this playlist!")
         }    
@@ -230,7 +220,7 @@ const updatePlaylist = asyncHandler(async (req, res) => { //update mane i ki par
         {
             throw new ApiError(404,"Playlist not found")
         }
-    if(playlist.owner.toString()!==req.user._id)
+    if(playlist.owner.toString()!==req.user._id.toString())
         {
             throw new ApiError(403,"You don't have permission to delete this playlist!")
         }    
