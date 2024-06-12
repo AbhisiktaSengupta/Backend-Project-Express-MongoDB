@@ -56,9 +56,6 @@ const updateComment = asyncHandler(async (req, res) => {
             throw new ApiError(403,"You don't have permission to update this comment!")
         }
     const updatedComment=await Comment.findByIdAndUpdate(commentId,
-        // {
-        //     content:content
-        // }
         {
             $set:{
                 content:content

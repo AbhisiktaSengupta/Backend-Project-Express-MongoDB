@@ -62,8 +62,16 @@ const registerUser=asyncHandler(async(req,res)=>{
     }
     const user=await User.create({
         fullName,
-        avatar:avatar.url,
-        coverImage:coverImage?.url||"",
+        avatar:
+        {
+            url:avatar.url,
+            public_id:avatar.public_id
+        },    
+        coverImage:
+        {
+            url:coverImage?.url||"",
+            public_id:coverImage?.public_id||""
+        },    
         email,
         username:username.toLowerCase(),
         password
@@ -239,19 +247,10 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Avatar file is missing")
     }
 
-    //TODO: delete old image - assignment
-    const prevAvatar=req.user?.avatar
-    if(prevAvatar)
-        {
-         const delAvatar=   await deleteFromCloudinary(prevAvatar)
-         if(!delAvatar){
-             throw new ApiError(400, "Error while deleting old avatar")
+     const delAvatar= await deleteFromCloudinary(req.user?.avatar)
+     if(!delAvatar){
+         throw new ApiError(400, "Error while deleting old avatar")
          }
-        }
-    else{
-        throw new ApiError(400, "No avatar found")
-    }    
-
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
     if (!avatar.url) {
@@ -287,23 +286,15 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     const prevCoverImage=req.user?.coverImage
     if(prevCoverImage)
         {
-         const delCoverImage=   await deleteFromCloudinary(prevCoverImage)
+         const delCoverImage=   await deleteFromCloudinary(prevCoverImage.public_id)
          if(!delCoverImage){
              throw new ApiError(400, "Error while deleting old cover image")
          }
         }
-    else{
-        throw new ApiError(400, "No cover image found")
-    }
-
-
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
     if (!coverImage.url) {
         throw new ApiError(400, "Error while uploading on avatar")
-        
     }
-
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
