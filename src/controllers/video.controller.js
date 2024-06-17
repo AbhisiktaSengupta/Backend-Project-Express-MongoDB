@@ -8,9 +8,57 @@ import {deleteFromCloudinary, uploadOnCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
+    const { 
+        page = 1, 
+        limit = 10, 
+        query, 
+        sortBy, 
+        sortType, 
+        userId = req.user?._id } = req.query
+    const user = await User.findById({
+        _id : userId,
+    })
+    if(!user) {
+        throw new ApiError(400, "User not found")
+    }
+
+    const allVideos = await Video.aggregate([
+        { 
+            $match : {
+                videoOwner : new mongoose.Types.ObjectId(userId),
+                $or: [
+                    { title: { $regex: query, $options: 'i' } },
+                    { description: { $regex: query, $options: 'i' } }
+                ]
+            }
+        },
+        {
+            $sort : {
+                [sortBy]: sortType,
+            }
+        },
+        {
+            $skip : (page - 1) * limit
+        },
+        {
+            $limit : parseInt(limit)
+        }
+    ])
+
+    Video.aggregatePaginate(allVideos,{
+        page, 
+        limit
+    })
+    . then((result) => {
+        return res.status(200)
+        .json( new ApiResponse(200, result, "All videos successfully fetched"))
+    })
+    .catch((err) => {
+        throw new ApiError(500, "Something went wrong while getting all videos from user" || err.message)
+    });
 })
+
 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body

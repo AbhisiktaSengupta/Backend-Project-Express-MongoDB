@@ -7,9 +7,55 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
     const {videoId} = req.params
-    const {page = 1, limit = 10} = req.query
+    const {
+        page = 1, 
+        limit = 10
+    } = req.query
+
+    const videoComments = await Comment.aggregate([
+        {
+            $match : {
+                video : new mongoose.Types.ObjectId(videoId)
+            }
+        },
+        {
+            $lookup : {
+                from:"users",
+                localField: "owner",
+                foreignField : "_id",
+                as: "commentDetails",
+                pipeline: [
+                    {
+                        $project : {
+                            username : 1,
+                            fullName : 1,
+                            avatar: 1,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addField : {
+                $first : "$commentDetails"
+            }
+        }
+    ])
+
+    Comment.aggregatePaginate(videoComments, {
+        page,
+        limit
+    })
+    .then( (results) => {
+        return res.status(200)
+        .json( new ApiResponse(200, results, "VideoComments Fetched Successfully"))
+    })
+    .catch((err) =>{
+        throw new ApiError(500, "Something went wrong while fetching comments")
+    })
 
 })
+
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
